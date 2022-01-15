@@ -16,7 +16,7 @@ struct Item: Identifiable {
 struct ContentView: View {
     @State private var isShowAddItemView = false
     @State private var isShowEditItemView = false
-    @State private var editId = UUID()
+    @State private var editID = UUID()
     @State private var editName = ""
     @State private var items: [Item] = [.init(name: "りんご", isChecked: false),
                                         .init(name: "みかん", isChecked: true),
@@ -30,11 +30,13 @@ struct ContentView: View {
                     ItemView(item: $item)
                         .onTapGesture {
                             item.isChecked.toggle()
-                    }
+                        }
+
                     Spacer()
+
                     Label("", systemImage: "info.circle")
                         .onTapGesture {
-                            editId = item.id
+                            editID = item.id
                             editName = item.name
                             isShowEditItemView = true
                         }
@@ -55,9 +57,7 @@ struct ContentView: View {
         }
         .fullScreenCover(isPresented: $isShowEditItemView) {
             EditItemView(isShowView: $isShowEditItemView, name: $editName) { name in
-                guard let targetIndex = items.firstIndex(where: { $0.id == editId }) else {
-                    return
-                }
+                guard let targetIndex = items.firstIndex(where: { $0.id == editID }) else { return }
                 items[targetIndex].name = name
             }
         }
