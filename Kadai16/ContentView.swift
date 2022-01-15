@@ -16,6 +16,7 @@ struct Item: Identifiable {
 struct ContentView: View {
     @State private var isShowAddItemView = false
     @State private var isShowEditItemView = false
+    @State private var newName = ""
     @State private var editId = UUID()
     @State private var editName = ""
     @State private var items: [Item] = [.init(name: "りんご", isChecked: false),
@@ -49,12 +50,12 @@ struct ContentView: View {
             }
         }
         .fullScreenCover(isPresented: $isShowAddItemView) {
-            AddItemView(isShowView: $isShowAddItemView) {
-                items.append($0)
+            AddOrEditItemView(isShowView: $isShowAddItemView, name: $newName) { (item, _) in
+                items.append(item)
             }
         }
         .fullScreenCover(isPresented: $isShowEditItemView) {
-            EditItemView(isShowView: $isShowEditItemView, name: $editName) { name in
+            AddOrEditItemView(isShowView: $isShowEditItemView, name: $editName) { (_, name) in
                 guard let targetIndex = items.firstIndex(where: { $0.id == editId }) else {
                     return
                 }
@@ -63,11 +64,32 @@ struct ContentView: View {
         }
     }
 }
-
-struct EditItemView: View {
+// MARK: - newNameとeditNameに分けて処理するやり方とBinding<String>に空文字を代入する方法が思いつかない。
+struct AddOrEditItemView: View {
     @Binding var isShowView: Bool
     @Binding var name: String
-    let didSave: (String) -> Void
+//    @State private var addName = ""
+    let didSave: (Item, String) -> Void
+
+//    init(isShowView: Binding<Bool>, didSave: (Item, String) -> Void) {
+//        // add
+//        _isShowView = isShowView
+//        _name = Binding(String)
+//        self.didSave = {(item, _) in  }
+//    }
+//
+//    init(isShowView: Binding<Bool>, name: Binding<String>, didSave: (Item, String) -> Void) {
+//        // edit
+//        _isShowView = isShowView
+//        _name = name
+//        self.didSave = {(_, name) in }
+//    }
+
+//    init(isShowView: Binding<Bool>, name: Binding<String>) {
+//        _isShowView = isShowView
+//        _name = name
+////        self.didSave = {(item, name) in }
+//    }
 
     var body: some View {
         NavigationView {
@@ -88,7 +110,7 @@ struct EditItemView: View {
 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        didSave(name)
+                        didSave(.init(name: name, isChecked: false), name)
                         isShowView = false
                     }
                 }
@@ -153,17 +175,23 @@ struct ContentView_Previews: PreviewProvider {
     }
 }
 
-struct EditItemView_Previews: PreviewProvider {
-    static var previews: some View {
-        EditItemView(isShowView: .constant(true), name: .constant("パイナップル"), didSave: { _ in })
-    }
-}
+//struct AddOrEditItemView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        AddOrEditItemView(isShowView: .constant(true), didSave: {(_, _) in })
+//    }
+//}
 
-struct AddItemView_Previews: PreviewProvider {
-    static var previews: some View {
-        AddItemView(isShowView: .constant(true), didSave: { _ in  })
-    }
-}
+//struct EditItemView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        EditItemView(isShowView: .constant(true), name: .constant("パイナップル"), didSave: { _ in })
+//    }
+//}
+//
+//struct AddItemView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        AddItemView(isShowView: .constant(true), didSave: { _ in  })
+//    }
+//}
 
 struct ItemView_Previews: PreviewProvider {
     static var previews: some View {
