@@ -19,7 +19,6 @@ struct Item: Identifiable {
 
 struct ContentView: View {
     @State private var isShowAddEditView = false
-//    @State private var isShowEditItemView = false
     @State private var name = ""
     @State private var mode: Mode = .add
     @State private var editId = UUID()
@@ -36,7 +35,9 @@ struct ContentView: View {
                         .onTapGesture {
                             item.isChecked.toggle()
                     }
+
                     Spacer()
+
                     Label("", systemImage: "info.circle")
                         .onTapGesture {
                             mode = Mode.edit
@@ -58,52 +59,23 @@ struct ContentView: View {
             }
         }
         .fullScreenCover(isPresented: $isShowAddEditView) {
-            AddOrEditItemView(isShowView: $isShowAddEditView, name: $name) { (item, editname) in
+            AddOrEditItemView(isShowView: $isShowAddEditView, name: $name) { item, editname in
                 switch mode {
                 case .add:
                     items.append(item)
                 case .edit:
-                    guard let targetIndex = items.firstIndex(where: { $0.id == editId }) else {
-                        return
-                    }
+                    guard let targetIndex = items.firstIndex(where: { $0.id == editId }) else { return }
                     items[targetIndex].name = editname
                 }
-
             }
         }
-//        .fullScreenCover(isPresented: $isShowEditItemView) {
-//            AddOrEditItemView(isShowView: $isShowEditItemView, name: $name) { (_, editname) in
-//
-//            }
-//        }
     }
 }
-// MARK: - newNameとeditNameに分けて処理するやり方とBinding<String>に空文字を代入する方法が思いつかない。
+
 struct AddOrEditItemView: View {
     @Binding var isShowView: Bool
     @Binding var name: String
-//    @State private var addName = ""
-//    let mode: Mode
     let didSave: (Item, String) -> Void
-//    init(isShowView: Binding<Bool>, didSave: (Item, String) -> Void) {
-//        // add
-//        _isShowView = isShowView
-//        _name = Binding(String)
-//        self.didSave = {(item, _) in  }
-//    }
-//
-//    init(isShowView: Binding<Bool>, name: Binding<String>, didSave: (Item, String) -> Void) {
-//        // edit
-//        _isShowView = isShowView
-//        _name = name
-//        self.didSave = {(_, name) in }
-//    }
-
-//    init(isShowView: Binding<Bool>, name: Binding<String>) {
-//        _isShowView = isShowView
-//        _name = name
-////        self.didSave = {(item, name) in }
-//    }
 
     var body: some View {
         NavigationView {
@@ -125,39 +97,6 @@ struct AddOrEditItemView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         didSave(.init(name: name, isChecked: false), name)
-                        isShowView = false
-                    }
-                }
-            }
-        }
-    }
-}
-
-struct AddItemView: View {
-    @Binding var isShowView: Bool
-    @State private var name = ""
-    let didSave: (Item) -> Void
-
-    var body: some View {
-        NavigationView {
-            HStack(spacing: 30) {
-                Text("名前")
-                    .padding(.leading)
-
-                TextField("", text: $name)
-                    .textFieldStyle(.roundedBorder)
-                    .padding(.trailing)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        isShowView = false
-                    }
-                }
-
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
-                        didSave(.init(name: name, isChecked: false))
                         isShowView = false
                     }
                 }
@@ -189,23 +128,11 @@ struct ContentView_Previews: PreviewProvider {
     }
 }
 
-//struct AddOrEditItemView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        AddOrEditItemView(isShowView: .constant(true), didSave: {(_, _) in })
-//    }
-//}
-
-//struct EditItemView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        EditItemView(isShowView: .constant(true), name: .constant("パイナップル"), didSave: { _ in })
-//    }
-//}
-//
-//struct AddItemView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        AddItemView(isShowView: .constant(true), didSave: { _ in  })
-//    }
-//}
+struct AddOrEditItemView_Previews: PreviewProvider {
+    static var previews: some View {
+        AddOrEditItemView(isShowView: .constant(true), name: .constant("みかん"), didSave: { _, _ in })
+    }
+}
 
 struct ItemView_Previews: PreviewProvider {
     static var previews: some View {
