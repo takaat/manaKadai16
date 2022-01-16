@@ -40,7 +40,7 @@ struct ContentView: View {
 
                     Label("", systemImage: "info.circle")
                         .onTapGesture {
-                            mode = Mode.edit
+                            mode = .edit
                             editId = item.id
                             name = item.name
                             isShowAddEditView = true
@@ -51,7 +51,7 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
-                        mode = Mode.add
+                        mode = .add
                         name = ""
                         isShowAddEditView = true
                     }, label: { Image(systemName: "plus") })
