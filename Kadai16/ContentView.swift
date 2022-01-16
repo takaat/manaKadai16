@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+enum Mode {
+    case add, edit
+}
+
 struct Item: Identifiable {
     let id = UUID()
     var name: String
@@ -14,10 +18,10 @@ struct Item: Identifiable {
 }
 
 struct ContentView: View {
-    @State private var isShowAddItemView = false
-    @State private var isShowEditItemView = false
-    @State private var editID = UUID()
-    @State private var editName = ""
+    @State private var isShowAddEditView = false
+    @State private var name = ""
+    @State private var mode: Mode = .add
+    @State private var editId = UUID()
     @State private var items: [Item] = [.init(name: "りんご", isChecked: false),
                                         .init(name: "みかん", isChecked: true),
                                         .init(name: "バナナ", isChecked: false),
@@ -30,44 +34,48 @@ struct ContentView: View {
                     ItemView(item: $item)
                         .onTapGesture {
                             item.isChecked.toggle()
-                        }
+                    }
 
                     Spacer()
 
                     Label("", systemImage: "info.circle")
                         .onTapGesture {
-                            editID = item.id
-                            editName = item.name
-                            isShowEditItemView = true
+                            mode = .edit
+                            editId = item.id
+                            name = item.name
+                            isShowAddEditView = true
                         }
                 }
             }
             .listStyle(.plain)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { isShowAddItemView = true },
-                           label: { Image(systemName: "plus") })
+                    Button(action: {
+                        mode = .add
+                        name = ""
+                        isShowAddEditView = true
+                    }, label: { Image(systemName: "plus") })
                 }
             }
         }
-        .fullScreenCover(isPresented: $isShowAddItemView) {
-            AddItemView(isShowView: $isShowAddItemView) {
-                items.append($0)
-            }
-        }
-        .fullScreenCover(isPresented: $isShowEditItemView) {
-            EditItemView(isShowView: $isShowEditItemView, name: $editName) { name in
-                guard let targetIndex = items.firstIndex(where: { $0.id == editID }) else { return }
-                items[targetIndex].name = name
+        .fullScreenCover(isPresented: $isShowAddEditView) {
+            AddOrEditItemView(isShowView: $isShowAddEditView, name: $name) { item, editname in
+                switch mode {
+                case .add:
+                    items.append(item)
+                case .edit:
+                    guard let targetIndex = items.firstIndex(where: { $0.id == editId }) else { return }
+                    items[targetIndex].name = editname
+                }
             }
         }
     }
 }
 
-struct EditItemView: View {
+struct AddOrEditItemView: View {
     @Binding var isShowView: Bool
     @Binding var name: String
-    let didSave: (String) -> Void
+    let didSave: (Item, String) -> Void
 
     var body: some View {
         NavigationView {
@@ -88,40 +96,7 @@ struct EditItemView: View {
 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        didSave(name)
-                        isShowView = false
-                    }
-                }
-            }
-        }
-    }
-}
-
-struct AddItemView: View {
-    @Binding var isShowView: Bool
-    @State private var name = ""
-    let didSave: (Item) -> Void
-
-    var body: some View {
-        NavigationView {
-            HStack(spacing: 30) {
-                Text("名前")
-                    .padding(.leading)
-
-                TextField("", text: $name)
-                    .textFieldStyle(.roundedBorder)
-                    .padding(.trailing)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        isShowView = false
-                    }
-                }
-
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
-                        didSave(.init(name: name, isChecked: false))
+                        didSave(.init(name: name, isChecked: false), name)
                         isShowView = false
                     }
                 }
@@ -153,15 +128,9 @@ struct ContentView_Previews: PreviewProvider {
     }
 }
 
-struct EditItemView_Previews: PreviewProvider {
+struct AddOrEditItemView_Previews: PreviewProvider {
     static var previews: some View {
-        EditItemView(isShowView: .constant(true), name: .constant("パイナップル"), didSave: { _ in })
-    }
-}
-
-struct AddItemView_Previews: PreviewProvider {
-    static var previews: some View {
-        AddItemView(isShowView: .constant(true), didSave: { _ in  })
+        AddOrEditItemView(isShowView: .constant(true), name: .constant("みかん"), didSave: { _, _ in })
     }
 }
 
