@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+enum Mode {
+    case add, edit
+}
+
 struct Item: Identifiable {
     let id = UUID()
     var name: String
@@ -14,11 +18,11 @@ struct Item: Identifiable {
 }
 
 struct ContentView: View {
-    @State private var isShowAddItemView = false
-    @State private var isShowEditItemView = false
-    @State private var newName = ""
+    @State private var isShowAddEditView = false
+//    @State private var isShowEditItemView = false
+    @State private var name = ""
+    @State private var mode: Mode = .add
     @State private var editId = UUID()
-    @State private var editName = ""
     @State private var items: [Item] = [.init(name: "りんご", isChecked: false),
                                         .init(name: "みかん", isChecked: true),
                                         .init(name: "バナナ", isChecked: false),
@@ -35,33 +39,43 @@ struct ContentView: View {
                     Spacer()
                     Label("", systemImage: "info.circle")
                         .onTapGesture {
+                            mode = Mode.edit
                             editId = item.id
-                            editName = item.name
-                            isShowEditItemView = true
+                            name = item.name
+                            isShowAddEditView = true
                         }
                 }
             }
             .listStyle(.plain)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { isShowAddItemView = true },
-                           label: { Image(systemName: "plus") })
+                    Button(action: {
+                        mode = Mode.add
+                        name = ""
+                        isShowAddEditView = true
+                    }, label: { Image(systemName: "plus") })
                 }
             }
         }
-        .fullScreenCover(isPresented: $isShowAddItemView) {
-            AddOrEditItemView(isShowView: $isShowAddItemView, name: $newName) { (item, _) in
-                items.append(item)
-            }
-        }
-        .fullScreenCover(isPresented: $isShowEditItemView) {
-            AddOrEditItemView(isShowView: $isShowEditItemView, name: $editName) { (_, name) in
-                guard let targetIndex = items.firstIndex(where: { $0.id == editId }) else {
-                    return
+        .fullScreenCover(isPresented: $isShowAddEditView) {
+            AddOrEditItemView(isShowView: $isShowAddEditView, name: $name) { (item, editname) in
+                switch mode {
+                case .add:
+                    items.append(item)
+                case .edit:
+                    guard let targetIndex = items.firstIndex(where: { $0.id == editId }) else {
+                        return
+                    }
+                    items[targetIndex].name = editname
                 }
-                items[targetIndex].name = name
+
             }
         }
+//        .fullScreenCover(isPresented: $isShowEditItemView) {
+//            AddOrEditItemView(isShowView: $isShowEditItemView, name: $name) { (_, editname) in
+//
+//            }
+//        }
     }
 }
 // MARK: - newNameとeditNameに分けて処理するやり方とBinding<String>に空文字を代入する方法が思いつかない。
@@ -69,8 +83,8 @@ struct AddOrEditItemView: View {
     @Binding var isShowView: Bool
     @Binding var name: String
 //    @State private var addName = ""
+//    let mode: Mode
     let didSave: (Item, String) -> Void
-
 //    init(isShowView: Binding<Bool>, didSave: (Item, String) -> Void) {
 //        // add
 //        _isShowView = isShowView
