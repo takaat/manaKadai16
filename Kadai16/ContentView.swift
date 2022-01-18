@@ -59,17 +59,23 @@ struct ContentView: View {
             }
         }
         .fullScreenCover(isPresented: $isShowAddEditView) {
-            AddOrEditItemView(name: $name) { item, editname in
-                isShowAddEditView = false
+            AddOrEditItemView(
+                name: $name,
+                didSave: { item, editname in
+                    isShowAddEditView = false
 
-                switch mode {
-                case .add:
-                    items.append(item)
-                case .edit:
-                    guard let targetIndex = items.firstIndex(where: { $0.id == editId }) else { return }
-                    items[targetIndex].name = editname
+                    switch mode {
+                    case .add:
+                        items.append(item)
+                    case .edit:
+                        guard let targetIndex = items.firstIndex(where: { $0.id == editId }) else { return }
+                        items[targetIndex].name = editname
+                    }
+                },
+                didCancel: {
+                    isShowAddEditView = false
                 }
-            }
+            )
         }
     }
 }
@@ -77,6 +83,7 @@ struct ContentView: View {
 struct AddOrEditItemView: View {
     @Binding var name: String
     let didSave: (Item, String) -> Void
+    let didCancel: () -> Void
 
     var body: some View {
         NavigationView {
@@ -91,6 +98,7 @@ struct AddOrEditItemView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
+                        didCancel()
                     }
                 }
 
@@ -129,7 +137,7 @@ struct ContentView_Previews: PreviewProvider {
 
 struct AddOrEditItemView_Previews: PreviewProvider {
     static var previews: some View {
-        AddOrEditItemView(name: .constant("みかん"), didSave: { _, _ in })
+        AddOrEditItemView(name: .constant("みかん"), didSave: { _, _ in }, didCancel: {})
     }
 }
 
